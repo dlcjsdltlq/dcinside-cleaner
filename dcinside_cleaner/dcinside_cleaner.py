@@ -113,7 +113,7 @@ class Cleaner:
         return res.json()
 
     def getPostList(self, gno : str, post_type : str) -> list:
-        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/main?gno={gno}&p=%s'
+        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/{gno}&p=%s'
         self.session.headers.update({ 'User-Agent': self.user_agent })
 
         res = self.session.get(gallog_url % 1)
@@ -122,7 +122,10 @@ class Cleaner:
         idx = 1
         paging_elements = soup.select('.bottom_paging_box > a')
         try:
-            if paging_elements[-1].text == '끝': 
+            if not paging_elements:
+                if soup.select_one('.bottom_paging_box > em').text == '1':
+                    pass
+            elif paging_elements[-1].text == '끝': 
                 idx = paging_elements[-1]['href'].split('&p=')[-1]
         except: return []
         res = self.session.get(gallog_url % idx)
@@ -150,7 +153,7 @@ class Cleaner:
                     print('reCAPTCHA Detected!')
                     input('캡차를 해제하였다면, Enter 키를 누르십시오. ')
                     break
-                time.sleep(0.7)
+                time.sleep(1)
         return True
 
     def getGallList(self, post_type : str) -> dict:
@@ -160,7 +163,7 @@ class Cleaner:
         if len(gall_list_elements) < 2: return {}
         gall_list = {}
         for gall_list_element in gall_list_elements[1:]:
-            gno = gall_list_element['data-value']
+            gno = gall_list_element['onclick'].split('/')[-1][:-1]
             gname = gall_list_element.text
             gall_list[gno] = gname
         return gall_list
