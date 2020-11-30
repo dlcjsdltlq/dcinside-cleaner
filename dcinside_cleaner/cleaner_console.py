@@ -46,7 +46,7 @@ class Console:
                 return 0
             post_type = self.p_type[cmd[1]]
             g_list = self.cleaner.getGallList(post_type)
-            print(g_list)
+            #print(g_list)
             if not self.g_list:
                 print('갤러리 리스트가 없습니다.')
                 return 0
