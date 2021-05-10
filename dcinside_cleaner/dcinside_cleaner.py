@@ -36,7 +36,8 @@ class Cleaner:
             form[element['name']] = element['value']
         return form
 
-    def decodeServiceCode(self, _svc : str, _r : str) -> str:
+    #https://gist.github.com/74l35rUnn3r/f689bce5b6abb15d0185a4754e4e6da5
+    def decodeServiceCode(self, _svc : str, _r : str) -> str: 
         _r_key = 'yL/M=zNa0bcPQdReSfTgUhViWjXkYIZmnpo+qArOBs1Ct2D3uE4Fv5G6wHl78xJ9K'
         _r = re.sub('[^A-Za-z0-9+/=]', '', _r)
 
