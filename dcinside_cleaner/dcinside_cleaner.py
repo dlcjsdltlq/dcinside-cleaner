@@ -160,7 +160,7 @@ class Cleaner:
     def getGallList(self, post_type : str) -> dict:
         res = self.session.get(f'https://gallog.dcinside.com/{self.user_id}/{post_type}')
         soup = BeautifulSoup(res.text, 'html.parser')
-        gall_list_elements = soup.select('div.option_sort.fr.gallog > div > ul > li')
+        gall_list_elements = soup.select('div.option_sort.fl.gallog > div > ul > li')
         if len(gall_list_elements) < 2: return {}
         gall_list = {}
         for gall_list_element in gall_list_elements[1:]:
