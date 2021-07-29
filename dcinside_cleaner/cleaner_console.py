@@ -1,5 +1,7 @@
 from dcinside_cleaner import Cleaner
 from getpass import getpass
+import traceback
+import json
 import re
 
 class Console:
@@ -14,16 +16,30 @@ class Console:
         cmd = cmd.split()
 
         if cmd[0] == 'help':
-            print('login - 로그인합니다.')
+            print('login (-saved) - 로그인합니다. "-saved" 옵션은 저장된 파일을 통해 로그인합니다.')
+            print('export login - 로그인 정보를 dcinside-cleaner-login.json으로 내보냅니다.')
             print('getglist -p | -c - 갤러리 리스트를 가져옵니다. "-p"는 글, "-c"는 댓글입니다.')
             print('del all | 1 2 3 4 ... | 1 ~ 4 - 선택한 갤러리에 대해 삭제를 수행합니다.')
             print('logout - 로그아웃합니다.')
             print('help - 도움말을 봅니다.')
+            print('exit - 종료합니다.')
             return 0
 
         elif cmd[0] == 'login':
             if self.login_flag:
                 print('이미 로그인되었습니다.')
+                return 0
+            if len(cmd) > 1 and cmd[1] == '-saved':
+                with open('dcinside-cleaner-login.json', 'r') as f:
+                    data = json.load(f)
+                    res = self.cleaner.loginFromCookies(data['cookies'])
+                    if res:
+                        print('로그인되었습니다.')
+                    else:
+                        print('로그인에 실패하였습니다.')
+                        return 0
+                    self.cleaner.setUserId(data['user_id'])
+                self.login_flag = True
                 return 0
             self.user_id = input('ID >> ')
             self.user_pw = getpass('PW >> ')
@@ -37,6 +53,14 @@ class Console:
 
         if not self.login_flag: print('로그인해 주십시오.')
 
+        elif cmd[0] == 'export':
+            data = {
+                'cookies': self.cleaner.getCookies(),
+                'user_id': self.cleaner.getUserId()
+            }
+            with open('dcinside-cleaner-login.json', 'wt', encoding='utf-8') as f:
+                f.write(json.dumps(data))
+
         elif cmd[0] == 'getglist':
             if len(cmd) < 2:
                 print('옵션을 입력하십시오.')
@@ -46,7 +70,9 @@ class Console:
                 return 0
             post_type = self.p_type[cmd[1]]
             g_list = self.cleaner.getGallList(post_type)
-            #print(g_list)
+            if g_list == 'BLOCKED':
+                print('IP 차단이 감지되었습니다.')
+                return 0
             if not self.g_list:
                 print('갤러리 리스트가 없습니다.')
                 return 0
