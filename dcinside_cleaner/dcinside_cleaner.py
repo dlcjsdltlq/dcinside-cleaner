@@ -93,7 +93,7 @@ class Cleaner:
         login_data['user_id'] = user_id
         login_data['pw'] = user_pw
         self.session.post(
-            'https://dcid.dcinside.com/join/member_check.php', data=login_data)
+            'https://sign.dcinside.com/login/member_check', data=login_data)
         res = self.session.get('https://www.dcinside.com/')
         if not BeautifulSoup(res.text, 'html.parser').select('.logout'):
             return False
