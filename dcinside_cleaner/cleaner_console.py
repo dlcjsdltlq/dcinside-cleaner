@@ -104,7 +104,7 @@ class Console:
             for del_no in del_list:
                 if del_no.isdigit():
                     self.cleaner.deletePostFromList(self.g_list[int(del_no)], self.g_list['type'])
-                    
+
         elif cmd[0] == 'logout':
             self.login_flag = False
             self.user_id, self.user_pw = '  '
@@ -114,9 +114,11 @@ class Console:
         print('사용법은 help를 입력하세요.')
         while True:
             cmd = input('>> ')
+            if cmd == 'exit':
+                break
             try:
                 self.parseAndExecute(cmd)
             except:
                 print('문제가 발생하였습니다.')
-        
-            
+
+
