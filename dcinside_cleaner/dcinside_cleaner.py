@@ -34,6 +34,7 @@ class Cleaner:
         self.session = requests.Session()
         self.session.headers.update({'User-Agent': self.user_agent})
         self.handleObj = handle_obj
+        self.post_list = []
 
     def serializeForm(self, input_elements):
         form = {}
@@ -139,6 +140,27 @@ class Cleaner:
             post_no = post_list_element['data-no']
             l.append(post_no)
         return l
+
+    def getAllPosts(self, gno: str, post_type: str) -> None:
+        pages = self.getPages(gno, post_type)
+        self.post_list = []
+        for idx in range(pages, 0, -1):
+            time.sleep(0.8)
+            res = self.getPostList(gno, post_type, idx)
+            if res == 'BLOCKED':
+                yield 'ipblocked'
+            self.post_list += res
+            yield True
+
+    def deletePosts(self, post_type: str):
+        for post_no in self.post_list:
+            time.sleep(0.8)
+            res = self.deletePost(post_no, post_type)
+            if res == 'BLOCKED':
+                yield 'ipblocked'
+            if res and 'captcha' in res['result']:
+                yield 'captcha'
+            yield True
 
     def deletePostFromList(self, gno: str, post_type: str) -> None:
         pages = self.getPages(gno, post_type)
