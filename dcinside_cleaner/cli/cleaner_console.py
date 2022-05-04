@@ -1,4 +1,4 @@
-from dcinside_cleaner import Cleaner
+from ..dcinside_cleaner import Cleaner
 from getpass import getpass
 from tqdm import tqdm
 import json
@@ -147,5 +147,3 @@ class Console:
             except Exception as e:
                 print(e)
                 print('문제가 발생하였습니다.')
-
-
