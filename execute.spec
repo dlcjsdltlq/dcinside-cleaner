@@ -6,6 +6,8 @@ block_cipher = None
 
 current_path = os.getcwd()
 
+MODE = 'gui' # gui | cli
+
 a = Analysis(['execute.py'],
              pathex=['./dcinisde_cleaner/', current_path],
              binaries=[],
@@ -28,11 +30,11 @@ exe = EXE(pyz,
           a.zipfiles,
           a.datas,
           [],
-          name='dcinisde-cleaner',
+          name='dcinside-cleaner-' + MODE,
           debug=False,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=False )
+          console=MODE!='gui' )
