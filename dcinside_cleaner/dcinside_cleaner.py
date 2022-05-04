@@ -42,31 +42,6 @@ class Cleaner:
             form[element['name']] = element['value']
         return form
 
-    # service code is not required
-    # https://gist.github.com/74l35rUnn3r/f689bce5b6abb15d0185a4754e4e6da5
-    def decodeServiceCode(self, _svc: str, _r: str) -> str:
-        _r_key = 'yL/M=zNa0bcPQdReSfTgUhViWjXkYIZmnpo+qArOBs1Ct2D3uE4Fv5G6wHl78xJ9K'
-        _r = re.sub('[^A-Za-z0-9+/=]', '', _r)
-
-        tmp = ''
-        i = 0
-        for a in [_r[i * 4:(i + 1) * 4] for i in range((len(_r) + 3) // 4)]:
-            t, f, d, h = [_r_key.find(x) for x in a]
-            tmp += chr(t << 2 | f >> 4)
-            if d != 64:
-                tmp += chr((15 & f) << 4 | (d >> 2))
-            if h != 64:
-                tmp += chr((3 & d) << 6 | h)
-        _r = str(int(tmp[0]) + 4) + tmp[1:]
-        if int(tmp[0]) > 5:
-            _r = str(int(tmp[0]) - 5) + tmp[1:]
-
-        _r = [float(x) for x in _r.split(',')]
-        t = ''
-        for i in range(len(_r)):
-            t += chr(int(2 * (_r[i] - i - 1) / (13 - i - 1)))
-        return _svc[0:len(_svc) - 10] + t
-
     def getUserId(self) -> str:
         return self.user_id
 
@@ -99,16 +74,6 @@ class Cleaner:
             return False
         return True
 
-    '''
-    def loginFromCookies(self, user_id) -> None:
-        self.user_id = user_id
-        with open('cookies.json', 'rt', encoding='utf-8') as f:
-            cookies = json.loads(f.read())
-            self.session = requests.Session()
-            for key in cookies:
-                 self.session.cookies.set(name=key, value=cookies[key], domain='.dcinside.com')
-    '''
-
     def deletePost(self, post_no: str, post_type: str) -> Union[dict, bool]:
         gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}'
 
@@ -117,13 +82,6 @@ class Cleaner:
 
         if not BeautifulSoup(res.text, 'html.parser').select_one('body'):
             return False
-
-        #soup = BeautifulSoup(res.text, 'html.parser')
-
-        #service_code = soup.select('.gallog_cont > input')[0]['value']
-
-        #r = res.text.split("var _r = _d('")[1].split("');")[0]
-        #service_code = self.decodeServiceCode(service_code, r)
 
         form_data = {
             'ci_t': self.session.cookies.get_dict()['ci_c'],
