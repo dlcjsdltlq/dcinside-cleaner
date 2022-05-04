@@ -1,9 +1,7 @@
 import requests
-from tqdm import tqdm
 from typing import Union
 from bs4 import BeautifulSoup
 import time
-import re
 
 
 class Cleaner:
@@ -32,9 +30,10 @@ class Cleaner:
         'User-Agent': user_agent
     }
 
-    def __init__(self):
+    def __init__(self, handle_obj):
         self.session = requests.Session()
         self.session.headers.update({'User-Agent': self.user_agent})
+        self.handleObj = handle_obj
 
     def serializeForm(self, input_elements):
         form = {}
@@ -141,34 +140,29 @@ class Cleaner:
             l.append(post_no)
         return l
 
-    def deletePostFromList(self, gno: str, post_type: str) -> bool:
-        print('Getting Article List...')
+    def deletePostFromList(self, gno: str, post_type: str) -> None:
         pages = self.getPages(gno, post_type)
+        self.handleObj.deleteEvent({ 'type': 'pages', 'data': pages })
         post_list = []
-        with tqdm(total=pages) as pbar:
-            for idx in range(pages, 0, -1):
-                res = self.getPostList(gno, post_type, idx)
-                if res == 'BLOCKED':
-                    print('IP 차단이 감지되었습니다.')
-                    break
-                post_list += res
-                pbar.update(1)
-                time.sleep(1)
-        allArticles = len(post_list)
-        print('Deleting...')
-        with tqdm(total=allArticles) as pbar:
-            for post_no in post_list:
-                res = self.deletePost(post_no, post_type)
-                if res == 'BLOCKED':
-                    print('IP 차단이 감지되었습니다.')
-                    break
-                if res and 'captcha' in res['result']:
-                    print('\nreCAPTCHA Detected!')
-                    input('캡차를 해제하였다면, Enter 키를 누르십시오. ')
-                pbar.update(1)
-                time.sleep(1)
-        print('삭제가 완료되었습니다.')
-        return True
+        for idx in range(pages, 0, -1):
+            res = self.getPostList(gno, post_type, idx)
+            if res == 'BLOCKED':
+                self.handleObj.deleteEvent({ 'type': 'ipblocked' })
+                break
+            post_list += res
+            self.handleObj.deleteEvent({ 'type': 'update_page' })
+            time.sleep(1)
+
+        self.handleObj.deleteEvent({ 'type': 'articles', 'data': len(post_list) })
+        for post_no in post_list:
+            res = self.deletePost(post_no, post_type)
+            if res == 'BLOCKED':
+                self.handleObj.deleteEvent({ 'type': 'ipblocked' })
+                break
+            if res and 'captcha' in res['result']:
+                self.handleObj.deleteEvent({ 'type': 'captcha' })
+            self.handleObj.deleteEvent({ 'type': 'update_article' })
+            time.sleep(1)
 
     def getGallList(self, post_type: str) -> Union[dict, str]:
         res = self.session.get(

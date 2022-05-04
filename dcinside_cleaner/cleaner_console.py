@@ -1,16 +1,42 @@
 from dcinside_cleaner import Cleaner
 from getpass import getpass
-import traceback
+from tqdm import tqdm
 import json
 import re
 
 class Console:
     p_type = {'-p': 'posting', '-c': 'comment'}
     def __init__(self):
-        self.cleaner = Cleaner()
+        self.cleaner = Cleaner(self)
         self.login_flag = False
         self.g_list = {'type':  None}
         self.getCommand()
+        self.articles = 0
+        self.pbar : tqdm
+
+    def deleteEvent(self, event):
+        if event['type'] == 'articles':
+            print('Deleting...')
+            self.articles = event['data']
+            self.pbar = tqdm(total=self.articles)
+
+        if event['type'] == 'pages':
+            print('Getting Article List...')
+            self.pages = event['data']
+            self.pbar = tqdm(total=self.pages)
+
+        if event['type'] == 'update_article':
+            self.pbar.update(1)
+
+        if event['type'] == 'update_page':
+            self.pbar.update(1)
+
+        if event['type'] == 'ipblocked':
+            print('IP 차단이 감지되었습니다!')
+
+        if event['type'] == 'captcha':
+            print('\nreCAPTCHA Detected!')
+            input('캡차를 해제하였다면, Enter 키를 누르십시오. ')
 
     def parseAndExecute(self, cmd : str) -> int:
         cmd = cmd.split()
@@ -118,7 +144,8 @@ class Console:
                 break
             try:
                 self.parseAndExecute(cmd)
-            except:
+            except Exception as e:
+                print(e)
                 print('문제가 발생하였습니다.')
 
 
