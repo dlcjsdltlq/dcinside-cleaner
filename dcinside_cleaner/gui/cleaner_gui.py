@@ -7,14 +7,12 @@ from PyQt5 import uic
 import sys
 import os
 
-from dcinside_cleaner.gui import cleaner_thread
-
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
     base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
     return os.path.join(base_path, relative_path)
 
-main_form = uic.loadUiType(resource_path('./ui_main_window.ui'))[0]
+main_form = uic.loadUiType(resource_path('ui_main_window.ui'))[0]
 
 class MainWindow(QtWidgets.QMainWindow, main_form):
     p_type_dict = { 'p': 'posting', 'c': 'comment' }
@@ -53,6 +51,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.progress_bar.setValue(0)
 
         if event['type'] == 'posts':
+            self.log(f'글 개수는 {event["data"]}개 입니다')
             self.log('글 삭제하는 중...')
             self.progress_cur = 0
             self.progress_max = event['data']

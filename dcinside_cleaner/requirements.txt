@@ -1,3 +1,4 @@
 tqdm
 requests
 bs4
+pyqt5
