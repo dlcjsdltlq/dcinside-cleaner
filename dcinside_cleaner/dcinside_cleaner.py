@@ -152,7 +152,7 @@ class Cleaner:
             self.post_list += res
             yield True
 
-    def deletePosts(self, post_type: str):
+    def deletePosts(self, post_type: str) -> None:
         for post_no in self.post_list:
             time.sleep(0.8)
             res = self.deletePost(post_no, post_type)
@@ -161,30 +161,6 @@ class Cleaner:
             if res and 'captcha' in res['result']:
                 yield 'captcha'
             yield True
-
-    def deletePostFromList(self, gno: str, post_type: str) -> None:
-        pages = self.getPages(gno, post_type)
-        self.handleObj.deleteEvent({ 'type': 'pages', 'data': pages })
-        post_list = []
-        for idx in range(pages, 0, -1):
-            res = self.getPostList(gno, post_type, idx)
-            if res == 'BLOCKED':
-                self.handleObj.deleteEvent({ 'type': 'ipblocked' })
-                break
-            post_list += res
-            self.handleObj.deleteEvent({ 'type': 'update_page' })
-            time.sleep(1)
-
-        self.handleObj.deleteEvent({ 'type': 'articles', 'data': len(post_list) })
-        for post_no in post_list:
-            res = self.deletePost(post_no, post_type)
-            if res == 'BLOCKED':
-                self.handleObj.deleteEvent({ 'type': 'ipblocked' })
-                break
-            if res and 'captcha' in res['result']:
-                self.handleObj.deleteEvent({ 'type': 'captcha' })
-            self.handleObj.deleteEvent({ 'type': 'update_article' })
-            time.sleep(1)
 
     def getGallList(self, post_type: str) -> Union[dict, str]:
         res = self.session.get(
