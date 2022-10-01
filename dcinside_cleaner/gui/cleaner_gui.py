@@ -59,7 +59,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
 
         if event['type'] in ('page_update', 'post_update'):
             self.progress_cur += 1
-            self.progress_bar.setValue((self.progress_cur / self.progress_max) * 100)
+            self.progress_bar.setValue(int((self.progress_cur / self.progress_max) * 100))
 
         if event['type'] == 'ipblocked':
             self.log('IP 차단 감지')
