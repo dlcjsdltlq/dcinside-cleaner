@@ -122,6 +122,8 @@ class Cleaner:
         return int(pages)
 
     def getPostList(self, gno: str, post_type: str, idx: int) -> Union[list, str]:
+        print(gno, post_type, idx)
+
         gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index?cno={gno}&p=%s'
         self.session.headers.update({'User-Agent': self.user_agent})
 

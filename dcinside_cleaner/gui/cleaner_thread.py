@@ -47,3 +47,4 @@ class CleanerThread(QtCore.QThread):
                     self.captcha_flag = True
                     while self.captcha_flag: pass
                 self.event_signal.emit({ 'type': 'post_update' })
+        self.event_signal.emit({ 'type': 'complete' })

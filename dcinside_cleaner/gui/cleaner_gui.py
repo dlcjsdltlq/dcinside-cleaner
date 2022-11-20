@@ -70,6 +70,17 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             QtWidgets.QMessageBox.information(self, '캡차 안내', '캡차가 감지되었습니다.\n갤로그에 접속해 캡차를 해제한 후 확인을 눌러주세요.')
             self.captcha_signal.emit(True)
 
+        if event['type'] == 'complete':
+            self.log('삭제 완료')
+            QtWidgets.QMessageBox.information(self, '완료', '삭제 작업이 완료되었습니다.')
+            self.progress_cur = 0
+            self.progress_max = 0
+            self.progress_bar.setValue(0)
+            self.group_box_gall.setEnabled(True)
+            self.btn_start.setEnabled(True)
+            self.combo_box_gall.clear()
+            self.cleaner_thread.quit()
+            self.g_list = []
 
     def log(self, text):
         self.box_log.append(text)
@@ -98,19 +109,22 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
 
     def getGallList(self, post_type):
         self.combo_box_gall.clear()
+        self.g_list = []
         self.setCursorWait()
         self.p_type = self.p_type_dict[post_type]
         self.log('갤러리 목록 가져오는 중...')
-        g_list = self.cleaner.getGallList(self.p_type)
+        gall_list = self.cleaner.getGallList(self.p_type)
         idx = 0
-        for gno in g_list:
+        for gno in gall_list:
             self.g_list.append(gno)
-            self.combo_box_gall.addItem(f'{idx + 1}. {g_list[gno]}')
+            self.combo_box_gall.addItem(f'{idx + 1}. {gall_list[gno]}')
             idx += 1
         self.restoreCursor()
 
     def delete(self):
-        if self.checkbox_gall_all.isChecked():
+        if not self.g_list:
+            return QtWidgets.QMessageBox.warning(self, '안내', '글 또는 댓글 목록을 불러온 후 삭제해 주세요.')
+        elif self.checkbox_gall_all.isChecked():
             self.cleaner_thread.setDelInfo(self.g_list, self.p_type)
         else:
             idx = self.combo_box_gall.currentIndex()
