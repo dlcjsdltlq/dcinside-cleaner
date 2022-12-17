@@ -1,18 +1,13 @@
 from .cleaner_thread import CleanerThread
 from ..dcinside_cleaner import Cleaner
+from .utils import resource_path
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5 import uic
 import sys
-import os
 
-def resource_path(relative_path):
-    """ Get absolute path to resource, works for dev and for PyInstaller """
-    base_path = getattr(sys, '_MEIPASS', os.path.dirname(os.path.abspath(__file__)))
-    return os.path.join(base_path, relative_path)
-
-main_form = uic.loadUiType(resource_path('ui_main_window.ui'))[0]
+main_form = uic.loadUiType(resource_path('./resources/ui/ui_main_window.ui'))[0]
 
 class MainWindow(QtWidgets.QMainWindow, main_form):
     p_type_dict = { 'p': 'posting', 'c': 'comment' }
