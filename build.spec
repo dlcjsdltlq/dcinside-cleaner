@@ -15,8 +15,9 @@ a = Analysis(['execute.py'],
                  (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_main_window.ui'), 'resources/ui'),
                  (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_proxies_input_window.ui'), 'resources/ui'),
                  (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_proxies_check_window.ui'), 'resources/ui'),
-                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/icon/logo_icon.ico'), 'resources/icon')
-
+                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_about_dialog.ui'), 'resources/ui'),
+                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/icon/logo_icon.ico'), 'resources/icon'),
+                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/img/logo_wide.png'), 'resources/img')
              ],
              hiddenimports=[],
              hookspath=[],

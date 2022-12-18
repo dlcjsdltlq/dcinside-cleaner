@@ -12,7 +12,9 @@ import sys
 import os
 
 main_form = uic.loadUiType(resource_path('./resources/ui/ui_main_window.ui'))[0]
+about_dialog_form = uic.loadUiType(resource_path('./resources/ui/ui_about_dialog.ui'))[0]
 logo_ico = resource_path('./resources/icon/logo_icon.ico')
+logo_img = resource_path('./resources/img/logo_wide.png')
 
 class MainWindow(QtWidgets.QMainWindow, main_form):
     p_type_dict = { 'p': 'posting', 'c': 'comment' }
@@ -27,6 +29,8 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.p_type = '' # 'posting' | 'comment'
         self.g_list = []
         self.proxy_list = []
+        
+        self.about_dialog : AboutDialog
 
         self.progress_cur = 0
         self.progress_max = 0
@@ -47,8 +51,15 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
 
         self.action_add_proxy.triggered.connect(self.openProxyInputDialog)
         self.action_get_proxy.triggered.connect(self.getProxyList)
+        self.action_about.triggered.connect(self.openAboutDialog)
 
         self.checkbox_proxy.setEnabled(False)
+        self.btn_start.setEnabled(False)
+        self.group_box_gall.setEnabled(False)
+
+    def openAboutDialog(self):
+        self.about_dialog = AboutDialog()
+        self.about_dialog.show()
 
     def getProxyList(self):
         try:
@@ -108,8 +119,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.label_current_mode.setText('현재 모드: Unknown')
             self.progress_bar.setValue(0)
             self.group_box_gall.setEnabled(True)
-            self.btn_start.setEnabled(True)
-            self.checkbox_proxy.setEnabled(True)
+            self.btn_start.setEnabled(False)
             self.combo_box_gall.clear()
             self.cleaner_thread.quit()
             self.g_list = []
@@ -142,6 +152,8 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.log('로그인 실패')
             QtWidgets.QMessageBox.warning(self, '로그인 안내', '로그인에 실패했습니다.')
 
+        self.group_box_gall.setEnabled(True)
+
     def updateUserInfo(self):
         result = self.cleaner.getUserInfo()
         self.label_nickname.setText('닉네임: ' + result['nickname'])
@@ -167,6 +179,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             idx += 1
 
         self.restoreCursor()
+        self.btn_start.setEnabled(True)
 
     def delete(self):
         if not self.g_list:
@@ -201,6 +214,19 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.proxy_list = available_list
         self.checkbox_proxy.setText('프록시 사용 - 확인된 리스트')
         self.checkbox_proxy.setEnabled(True)
+
+class AboutDialog(QtWidgets.QDialog, about_dialog_form):
+
+    def __init__(self):
+        super().__init__()
+        self.setupUi(self)
+        self.setWindowIcon(QtGui.QIcon(logo_ico))
+
+        pixmap = QtGui.QPixmap()
+        pixmap.load(logo_img)
+        pixmap = pixmap.scaledToWidth(600)
+
+        self.logo_img.setPixmap(pixmap)
 
 def execute():
     app = QtWidgets.QApplication(sys.argv)

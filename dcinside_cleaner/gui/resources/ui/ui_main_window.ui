@@ -213,6 +213,8 @@
     </property>
     <addaction name="action_add_proxy"/>
     <addaction name="action_get_proxy"/>
+    <addaction name="separator"/>
+    <addaction name="action_about"/>
    </widget>
    <addaction name="menu"/>
   </widget>
@@ -224,6 +226,11 @@
   <action name="action_get_proxy">
    <property name="text">
     <string>프록시 불러오기</string>
+   </property>
+  </action>
+  <action name="action_about">
+   <property name="text">
+    <string>정보</string>
    </property>
   </action>
  </widget>
