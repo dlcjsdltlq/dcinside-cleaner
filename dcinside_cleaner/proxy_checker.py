@@ -27,6 +27,7 @@ class ProxyChecker:
             a = time.time()
             requests.get(self.check_url, headers=self.headers, proxies=proxy, timeout=timeout)
             delay = time.time() - a
+            if delay > timeout: raise Exception
         except Exception as e:
             return [False, delay]
 

@@ -19,7 +19,7 @@
      <property name="text">
       <string>* 사용 가능한 프록시
 - HTTPS/SSL 지원
-- 연결속도 0.4sec 이하</string>
+- 지연 0.6sec 이하</string>
      </property>
     </widget>
    </item>
@@ -29,6 +29,27 @@
       <string>프록시 확인</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QPushButton" name="btn_remove_excluded">
+          <property name="text">
+           <string>제외 프록시 삭제</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QPushButton" name="btn_retest">
+          <property name="text">
+           <string>프록시 재 테스트</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
       <item>
        <widget class="QTableWidget" name="proxy_table"/>
       </item>
