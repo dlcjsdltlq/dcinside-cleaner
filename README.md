@@ -1,4 +1,4 @@
-# <img src="[.](https://raw.githubusercontent.com/dlcjsdltlq/dcinside-cleaner/master)/img/logo.png" alt="dcinside-cleaner" width="500px">
+# <img src="https://raw.githubusercontent.com/dlcjsdltlq/dcinside-cleaner/master/img/logo.png" alt="dcinside-cleaner" width="500px">
 ## 설명
 디시인사이드 이용자를 위한 클리너입니다.
 
