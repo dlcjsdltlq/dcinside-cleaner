@@ -77,6 +77,36 @@
      </widget>
     </item>
     <item>
+     <widget class="QGroupBox" name="groupBox">
+      <property name="title">
+       <string>로그인 정보</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_7">
+       <item>
+        <widget class="QLabel" name="label_nickname">
+         <property name="text">
+          <string>닉네임: Unknown</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_article_num">
+         <property name="text">
+          <string>글 개수: 0</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_comment_num">
+         <property name="text">
+          <string>댓글 개수: 0</string>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
      <widget class="QGroupBox" name="group_box_gall">
       <property name="title">
        <string>갤러리 선택</string>
@@ -112,6 +142,13 @@
           </widget>
          </item>
         </layout>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_current_mode">
+         <property name="text">
+          <string>현재 모드: Unknown</string>
+         </property>
+        </widget>
        </item>
       </layout>
      </widget>

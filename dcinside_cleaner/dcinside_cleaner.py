@@ -100,6 +100,22 @@ class Cleaner:
             return False
         return True
 
+    def getUserInfo(self) -> dict:
+        self.session.headers.update(self.login_headers)
+        res = self.session.get(f'https://gallog.dcinside.com/{self.user_id}')
+        soup = BeautifulSoup(res.text, 'html.parser')
+        nickname = soup.select_one('#top_bg > div.galler_info > strong').get_text()
+        article_num = soup.select_one('#container > article > div > div.wrap_right > section > section:nth-child(2) > div > header > div > h2 > span').get_text()
+        comment_num = soup.select_one('#container > article > div > div.wrap_right > section > section:nth-child(3) > div > header > div > h2 > span').get_text()
+
+        remove_bracket = lambda x: x[1:-1]
+
+        return {
+            'nickname': nickname,
+            'article_num': remove_bracket(article_num),
+            'comment_num': remove_bracket(comment_num)
+        }
+
     @_handleProxyError
     def deletePost(self, post_no: str, post_type: str) -> Union[dict, bool]:
         gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}'

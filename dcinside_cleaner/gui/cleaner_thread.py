@@ -42,9 +42,10 @@ class CleanerThread(QtCore.QThread):
             for i in self.cleaner.deletePosts(self.p_type):
                 if i['data'] == 'ipblocked':
                     return self.event_signal.emit({ 'type': 'ipblocked' })
-                if i['data'] == 'captcha':
+                elif i['data'] == 'captcha':
                     self.event_signal.emit({ 'type': 'captcha' })
                     self.captcha_flag = True
                     while self.captcha_flag: pass
+                    continue
                 self.event_signal.emit({ 'type': 'post_update', 'data': i['data'] })
         self.event_signal.emit({ 'type': 'complete' })
