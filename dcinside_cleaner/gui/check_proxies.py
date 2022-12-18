@@ -8,6 +8,7 @@ from PyQt5 import uic
 import json
 
 proxies_check_form = uic.loadUiType(resource_path('./resources/ui/ui_proxies_check_window.ui'))[0]
+logo_ico = resource_path('./resources/icon/logo_icon.ico')
 
 PROXY_AVAILABLE_DELAY = 0.6
 
@@ -17,6 +18,7 @@ class ProxyCheckWindow(QtWidgets.QDialog, proxies_check_form):
     def __init__(self, proxy_list):
         super().__init__()
         self.setupUi(self)
+        self.setWindowIcon(QtGui.QIcon(logo_ico))
 
         self.check_thread : ProxyThread
 

@@ -14,7 +14,9 @@ a = Analysis(['execute.py'],
              datas=[
                  (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_main_window.ui'), 'resources/ui'),
                  (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_proxies_input_window.ui'), 'resources/ui'),
-                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_proxies_check_window.ui'), 'resources/ui')
+                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_proxies_check_window.ui'), 'resources/ui'),
+                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/icon/logo_icon.ico'), 'resources/icon')
+
              ],
              hiddenimports=[],
              hookspath=[],
@@ -39,4 +41,6 @@ exe = EXE(pyz,
           upx=True,
           upx_exclude=[],
           runtime_tmpdir=None,
-          console=MODE!='gui' )
+          console=MODE!='gui',
+          icon='./dcinside_cleaner/gui/resources/icon/logo_icon.ico'
+          )

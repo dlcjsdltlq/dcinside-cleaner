@@ -1,10 +1,12 @@
 from .utils import resource_path
 from PyQt5 import QtWidgets
 from PyQt5 import QtCore
+from PyQt5 import QtGui
 from PyQt5 import uic
 import ipaddress
 
 proxies_input_form = uic.loadUiType(resource_path('./resources/ui/ui_proxies_input_window.ui'))[0]
+logo_ico = resource_path('./resources/icon/logo_icon.ico')
 
 class ProxyInputWindow(QtWidgets.QDialog, proxies_input_form):
     proxy_list_signal = QtCore.pyqtSignal(list)
@@ -12,6 +14,7 @@ class ProxyInputWindow(QtWidgets.QDialog, proxies_input_form):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.setWindowIcon(QtGui.QIcon(logo_ico))
 
         self.btn_complete.clicked.connect(self.getProxyList)
 

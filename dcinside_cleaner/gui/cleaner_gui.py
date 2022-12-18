@@ -12,6 +12,7 @@ import sys
 import os
 
 main_form = uic.loadUiType(resource_path('./resources/ui/ui_main_window.ui'))[0]
+logo_ico = resource_path('./resources/icon/logo_icon.ico')
 
 class MainWindow(QtWidgets.QMainWindow, main_form):
     p_type_dict = { 'p': 'posting', 'c': 'comment' }
@@ -19,6 +20,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
     def __init__(self):
         super().__init__()
         self.setupUi(self)
+        self.setWindowIcon(QtGui.QIcon(logo_ico))
 
         self.id = ''
         self.pw = ''
