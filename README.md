@@ -1,6 +1,8 @@
 # <img src="[.](https://raw.githubusercontent.com/dlcjsdltlq/dcinside-cleaner/master)/img/logo.png" alt="dcinside-cleaner" width="500px">
 ## 설명
 디시인사이드 이용자를 위한 클리너입니다.
+
+[Download v2.2 (latest)](https://github.com/dlcjsdltlq/dcinside-cleaner/releases/tag/v2.2)
 ## 사용법
 ### 기본
 <img src="https://raw.githubusercontent.com/dlcjsdltlq/dcinside-cleaner/master/img/1.explain-basic.jpg" width="300px"><br>

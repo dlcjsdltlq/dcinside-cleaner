@@ -42,7 +42,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QLabel" name="label_3">
+    <widget class="QLabel" name="label_info">
      <property name="text">
       <string>개발: &lt;a href=&quot;https://github.com/dlcjsdltlq&quot;&gt;dlcjsdltlq&lt;/a&gt;&lt;br /&gt;레포지토리: &lt;a href=&quot;https://github.com/dlcjsdltlq/dcinside-cleaner&quot;&gt;https://github.com/dlcjsdltlq/dcinside-cleaner&lt;/a&gt;&lt;br /&gt;자세한 사용법은 레포지토리에서 확인할 수 있습니다.</string>
      </property>

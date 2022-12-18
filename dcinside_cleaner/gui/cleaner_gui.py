@@ -228,6 +228,8 @@ class AboutDialog(QtWidgets.QDialog, about_dialog_form):
 
         self.logo_img.setPixmap(pixmap)
 
+        self.label_info.setOpenExternalLinks(True)
+
 def execute():
     app = QtWidgets.QApplication(sys.argv)
     main_window = MainWindow()
