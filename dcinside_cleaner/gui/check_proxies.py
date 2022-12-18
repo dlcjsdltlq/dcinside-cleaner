@@ -166,7 +166,7 @@ class ProxyThread(QtCore.QThread):
     def run(self):
         self.working = True
         for idx, proxy in enumerate(self.proxy_list):
-            if not self.working: break
+            if not self.working: return
             status, delay = self.proxy_checker.checkProxy({ 'http': proxy, 'https': proxy }, PROXY_AVAILABLE_DELAY)
             self.proxy_info_signal.emit([idx, status, delay, proxy])
 

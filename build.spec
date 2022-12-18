@@ -12,9 +12,9 @@ a = Analysis(['execute.py'],
              pathex=['./dcinisde_cleaner/', current_path],
              binaries=[],
              datas=[
-                 (os.path.join(current_path, 'dcinside_cleaner/gui/resources/ui/ui_main_window.ui'), '.'),
-                 (os.path.join(current_path, 'dcinside_cleaner/gui/resources/ui/ui_proxies_input_window.ui'), '.'),
-                 (os.path.join(current_path, 'dcinside_cleaner/gui/resources/ui/ui_proxies_check_window.ui'), '.')
+                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_main_window.ui'), 'resources/ui'),
+                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_proxies_input_window.ui'), 'resources/ui'),
+                 (os.path.join(current_path, './dcinside_cleaner/gui/resources/ui/ui_proxies_check_window.ui'), 'resources/ui')
              ],
              hiddenimports=[],
              hookspath=[],
