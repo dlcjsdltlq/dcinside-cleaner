@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>403</width>
-    <height>724</height>
+    <height>727</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -174,17 +174,17 @@
     <property name="title">
      <string>메뉴</string>
     </property>
-    <addaction name="btn_add_proxy"/>
-    <addaction name="btn_get_proxy"/>
+    <addaction name="action_add_proxy"/>
+    <addaction name="action_get_proxy"/>
    </widget>
    <addaction name="menu"/>
   </widget>
-  <action name="btn_add_proxy">
+  <action name="action_add_proxy">
    <property name="text">
     <string>프록시 추가</string>
    </property>
   </action>
-  <action name="btn_get_proxy">
+  <action name="action_get_proxy">
    <property name="text">
     <string>프록시 불러오기</string>
    </property>

@@ -34,17 +34,17 @@ class CleanerThread(QtCore.QThread):
         for gno in self.del_list:
             self.event_signal.emit({ 'type': 'pages', 'data': self.cleaner.getPages(gno, self.p_type) })
             for i in self.cleaner.getAllPosts(gno, self.p_type):
-                if i == 'ipblocked':
+                if i['data'] == 'ipblocked':
                     return self.event_signal.emit({ 'type': 'ipblocked' })
-                self.event_signal.emit({ 'type': 'page_update' })
+                self.event_signal.emit({ 'type': 'page_update', 'data': i['data'] })
             
             self.event_signal.emit({ 'type': 'posts', 'data': len(self.cleaner.post_list) })
             for i in self.cleaner.deletePosts(self.p_type):
-                if i == 'ipblocked':
+                if i['data'] == 'ipblocked':
                     return self.event_signal.emit({ 'type': 'ipblocked' })
-                if i == 'captcha':
+                if i['data'] == 'captcha':
                     self.event_signal.emit({ 'type': 'captcha' })
                     self.captcha_flag = True
                     while self.captcha_flag: pass
-                self.event_signal.emit({ 'type': 'post_update' })
+                self.event_signal.emit({ 'type': 'post_update', 'data': i['data'] })
         self.event_signal.emit({ 'type': 'complete' })

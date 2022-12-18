@@ -1,8 +1,11 @@
-import requests
-from typing import Union
+from requests.exceptions import ConnectTimeout
+from requests.exceptions import ProxyError
 from bs4 import BeautifulSoup
+from typing import Union
+import requests
 import time
 
+MAX_DELAY = 0.8
 
 class Cleaner:
     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36'
@@ -30,11 +33,30 @@ class Cleaner:
         'User-Agent': user_agent
     }
 
-    def __init__(self, handle_obj):
+    def __init__(self):
         self.session = requests.Session()
+        self.session.verify = False
         self.session.headers.update({'User-Agent': self.user_agent})
-        self.handleObj = handle_obj
         self.post_list = []
+        self.proxy_list = []
+        self.delay = MAX_DELAY
+
+    def updateDelay(self):
+        self.delay = round(MAX_DELAY / (len(self.proxy_list) or 1), 1)
+
+    def _handleProxyError(func):
+        def wrapper(self, *args):
+            result = None
+            while True:
+                try:
+                    result = func(self, *args)
+                except (ProxyError, ConnectTimeout):
+                    self.proxy_list.pop()
+                    self.updateDelay()
+                else:
+                    return result
+
+        return wrapper
 
     def serializeForm(self, input_elements):
         form = {}
@@ -47,6 +69,10 @@ class Cleaner:
 
     def setUserId(self, user_id: str) -> None:
         self.user_id = user_id
+
+    def setProxyList(self, proxy_list: list) -> None:
+        self.proxy_list = proxy_list
+        self.updateDelay()
 
     def getCookies(self) -> dict:
         return self.session.cookies.get_dict()
@@ -74,11 +100,14 @@ class Cleaner:
             return False
         return True
 
+    @_handleProxyError
     def deletePost(self, post_no: str, post_type: str) -> Union[dict, bool]:
         gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}'
 
+        proxy = self.getProxy()
+
         self.session.headers.update({'User-Agent': self.user_agent})
-        res = self.session.get(gallog_url)
+        res = self.session.get(gallog_url, proxies=proxy)
 
         if not BeautifulSoup(res.text, 'html.parser').select_one('body'):
             return False
@@ -92,7 +121,7 @@ class Cleaner:
         self.delete_headers['Referer'] = self.user_id
         self.session.headers.update(self.delete_headers)
         res = self.session.post(
-            f'https://gallog.dcinside.com/{self.user_id}/ajax/log_list_ajax/delete', data=form_data)
+            f'https://gallog.dcinside.com/{self.user_id}/ajax/log_list_ajax/delete', data=form_data, proxies=proxy)
 
         data = res.json()
 
@@ -100,14 +129,16 @@ class Cleaner:
             return {}
         return data
 
+    @_handleProxyError
     def getPages(self, gno: str, post_type: str) -> int:
         gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index?cno={gno}&p=%s'
         self.session.headers.update({'User-Agent': self.user_agent})
 
-        res = self.session.get(gallog_url % 1)
+        res = self.session.get(gallog_url % 1, proxies=self.getProxy())
         soup = BeautifulSoup(res.text, 'html.parser')
         pages = 1
         paging_elements = soup.select('.bottom_paging_box > a')
+
         try:
             if paging_elements:
                 if paging_elements[-1].text == '끝':
@@ -121,13 +152,14 @@ class Cleaner:
 
         return int(pages)
 
+    @_handleProxyError
     def getPostList(self, gno: str, post_type: str, idx: int) -> Union[list, str]:
         print(gno, post_type, idx)
 
         gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index?cno={gno}&p=%s'
         self.session.headers.update({'User-Agent': self.user_agent})
 
-        res = self.session.get(gallog_url % idx)
+        res = self.session.get(gallog_url % idx, proxies=self.getProxy())
 
         soup = BeautifulSoup(res.text, 'html.parser')
         if not soup.select_one('body'):
@@ -141,42 +173,94 @@ class Cleaner:
         for post_list_element in reversed(post_list_elements):
             post_no = post_list_element['data-no']
             l.append(post_no)
+
         return l
 
     def getAllPosts(self, gno: str, post_type: str) -> None:
         pages = self.getPages(gno, post_type)
         self.post_list = []
+
         for idx in range(pages, 0, -1):
-            time.sleep(0.8)
+            a = time.time()
+            time.sleep(self.delay)
             res = self.getPostList(gno, post_type, idx)
+            delay = time.time() - a
+
             if res == 'BLOCKED':
-                yield 'ipblocked'
+                yield {
+                    'status': False,
+                    'data': 'ipblocked'
+                }
+
             self.post_list += res
-            yield True
+            yield {
+                'status': True,
+                'data': {
+                    'index': idx,
+                    'proxy': self.proxy_list and self.proxy_list[-1] or '',
+                    'delay': round(delay, 1)
+                }
+            }
 
-    def deletePosts(self, post_type: str) -> None:
+    def deletePosts(self, post_type: str) -> Union[str, list]:
         for post_no in self.post_list:
-            time.sleep(0.8)
+            a = time.time()
+            time.sleep(self.delay)
             res = self.deletePost(post_no, post_type)
-            if res == 'BLOCKED':
-                yield 'ipblocked'
-            if res and 'captcha' in res['result']:
-                yield 'captcha'
-            yield True
+            delay = time.time() - a
 
+            if res == 'BLOCKED':
+                yield {
+                    'status': False,
+                    'data': 'ipblocked'
+                }
+
+            if res and 'captcha' in res['result']:
+                yield {
+                    'status': False,
+                    'data': 'captcha'
+                }
+
+            yield {
+                'status': True,
+                'data': {
+                    'proxy': self.proxy_list and self.proxy_list[-1] or '',
+                    'del_no': post_no,
+                    'delay': round(delay, 1)
+                }
+            }
+
+    @_handleProxyError
     def getGallList(self, post_type: str) -> Union[dict, str]:
         res = self.session.get(
-            f'https://gallog.dcinside.com/{self.user_id}/{post_type}')
+            f'https://gallog.dcinside.com/{self.user_id}/{post_type}', proxies=self.getProxy())
+
         soup = BeautifulSoup(res.text, 'html.parser')
+
         if not soup.select_one('body'):
             return 'BLOCKED'
+
         gall_list_elements = soup.select(
             'div.option_sort.gallog > div > ul > li')
+
         if len(gall_list_elements) <= 1:
             return {}
+
         gall_list = {}
+
         for gall_list_element in gall_list_elements[1:]:
             gno = gall_list_element['data-value']
             gname = gall_list_element.text
             gall_list[gno] = gname
         return gall_list
+
+    def getProxy(self) -> dict:
+        if self.proxy_list:
+            proxy = self.proxy_list.pop(0)
+            self.proxy_list.append(proxy)
+            return {
+                'http': proxy,
+                'https': proxy
+            }
+
+        return {}

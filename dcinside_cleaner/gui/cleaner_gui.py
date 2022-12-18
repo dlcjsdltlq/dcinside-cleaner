@@ -1,3 +1,5 @@
+from .check_proxies import ProxyCheckWindow
+from .get_proxies import ProxyInputWindow
 from .cleaner_thread import CleanerThread
 from ..dcinside_cleaner import Cleaner
 from .utils import resource_path
@@ -5,7 +7,10 @@ from PyQt5 import QtWidgets
 from PyQt5 import QtCore
 from PyQt5 import QtGui
 from PyQt5 import uic
+import traceback
+import json
 import sys
+import os
 
 main_form = uic.loadUiType(resource_path('./resources/ui/ui_main_window.ui'))[0]
 
@@ -19,12 +24,13 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.id = ''
         self.pw = ''
         self.g_list = []
+        self.proxy_list = []
 
         self.progress_cur = 0
         self.progress_max = 0
 
         self.cleaner_thread = CleanerThread(self.captcha_signal)
-        self.cleaner = Cleaner(self.cleaner_thread)
+        self.cleaner = Cleaner()
         self.cleaner_thread.setCleaner(self.cleaner)
 
         self.cleaner_thread.event_signal.connect(self.deleteEvent)
@@ -36,6 +42,25 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.btn_get_comment.clicked.connect(lambda: self.getGallList('c'))
 
         self.btn_start.clicked.connect(self.delete)
+
+        self.action_add_proxy.triggered.connect(self.openProxyInputDialog)
+        self.action_get_proxy.triggered.connect(self.getProxyList)
+
+        self.checkbox_proxy.setEnabled(False)
+
+    def getProxyList(self):
+        try:
+            name = QtWidgets.QFileDialog.getOpenFileName(self, '프록시 파일 열기', './', 'JSON files (*.json)')[0]
+            with open(name, 'r') as file:
+                data = json.loads(file.read())
+                if data['title'] != 'dcinside_cleaner_proxy_list':
+                    raise Exception
+                self.proxy_list = data['data']
+                self.checkbox_proxy.setText('프록시 사용 - ' + os.path.basename(name))
+                self.checkbox_proxy.setEnabled(True)
+        except:
+            self.proxy_list = []
+            QtWidgets.QMessageBox.warning(self, '파일 열기 실패', '올바른 파일이 아닙니다.')
 
     @QtCore.pyqtSlot(dict)
     def deleteEvent(self, event):
@@ -56,6 +81,14 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.progress_cur += 1
             self.progress_bar.setValue(int((self.progress_cur / self.progress_max) * 100))
 
+            if event['type'] == 'page_update':
+                self.log(f"{event['data']['index'] + 1}번째 페이지 로딩...")
+
+            else:
+                self.log(f"{event['data']['del_no']}번 글 삭제")
+                
+            self.log(f"프록시는 {event['data']['proxy'] or 'X'}, 딜레이는 {event['data']['delay']}")
+
         if event['type'] == 'ipblocked':
             self.log('IP 차단 감지')
             QtWidgets.QMessageBox.warning(self, '차단 안내', 'IP가 차단되었습니다.')
@@ -73,6 +106,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.progress_bar.setValue(0)
             self.group_box_gall.setEnabled(True)
             self.btn_start.setEnabled(True)
+            self.checkbox_proxy.setEnabled(True)
             self.combo_box_gall.clear()
             self.cleaner_thread.quit()
             self.g_list = []
@@ -124,9 +158,31 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         else:
             idx = self.combo_box_gall.currentIndex()
             self.cleaner_thread.setDelInfo([self.g_list[idx]], self.p_type)
+        
+        if self.checkbox_proxy.isChecked():
+            self.cleaner.setProxyList(self.proxy_list)
+
         self.group_box_gall.setEnabled(False)
         self.btn_start.setEnabled(False)
+        self.checkbox_proxy.setEnabled(False)
         self.cleaner_thread.start()
+
+    def openProxyInputDialog(self):
+        self.proxy_input_dialog = ProxyInputWindow()
+        self.proxy_input_dialog.proxy_list_signal.connect(self.openProxyCheckDialog)
+        self.proxy_input_dialog.show()
+        
+    @QtCore.pyqtSlot(list)
+    def openProxyCheckDialog(self, proxy_list):
+        self.proxy_check_dialog = ProxyCheckWindow(proxy_list)
+        self.proxy_check_dialog.available_proxy_list_signal.connect(self.setAvailableProxyList)
+        self.proxy_check_dialog.show()
+
+    @QtCore.pyqtSlot(list)
+    def setAvailableProxyList(self, available_list):
+        self.proxy_list = available_list
+        self.checkbox_proxy.setText('프록시 사용 - 확인된 리스트')
+        self.checkbox_proxy.setEnabled(True)
 
 def execute():
     app = QtWidgets.QApplication(sys.argv)

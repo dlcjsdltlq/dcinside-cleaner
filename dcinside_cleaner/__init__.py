@@ -10,4 +10,4 @@ def main():
     if RUNNING_MODE == 'gui':
         execute()
 
-__all__ = ['main', 'dcinside_cleaner', 'cli', 'gui']
+__all__ = ['main', 'dcinside_cleaner', 'proxy_checker', 'cli', 'gui']
