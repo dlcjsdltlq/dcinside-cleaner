@@ -115,8 +115,8 @@ class Console:
     
     def delete(self, gno, post_type):
         print('글 목록 가져오는 중...')
-        with tqdm(total=self.cleaner.getPages(gno, post_type)) as pbar:
-            for i in self.cleaner.getAllPosts(gno, post_type):
+        with tqdm(total=self.cleaner.getPageCount(gno, post_type)) as pbar:
+            for i in self.cleaner.aggregatePosts(gno, post_type):
                 if i == 'ipblocked': return print('IP 차단이 감지되었습니다.')
                 pbar.update(1)
 

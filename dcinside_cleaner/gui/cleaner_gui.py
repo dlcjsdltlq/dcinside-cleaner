@@ -54,7 +54,6 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.action_about.triggered.connect(self.openAboutDialog)
 
         self.checkbox_proxy.setEnabled(False)
-        self.btn_start.setEnabled(False)
         self.group_box_gall.setEnabled(False)
 
     def openAboutDialog(self):
@@ -119,7 +118,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.label_current_mode.setText('현재 모드: Unknown')
             self.progress_bar.setValue(0)
             self.group_box_gall.setEnabled(True)
-            self.btn_start.setEnabled(False)
+            self.btn_start.setEnabled(True)
             self.combo_box_gall.clear()
             self.cleaner_thread.quit()
             self.g_list = []
@@ -142,12 +141,12 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.log('로그인 중...')
         self.setCursorWait()
         res = self.cleaner.login(self.id, self.pw)
-        self.updateUserInfo()
         self.restoreCursor()
         if res:
             self.log('로그인 성공')
             QtWidgets.QMessageBox.information(self, '로그인 안내', '로그인되었습니다')
             self.group_box_login.setEnabled(False)
+            self.updateUserInfo()
         else:
             self.log('로그인 실패')
             QtWidgets.QMessageBox.warning(self, '로그인 안내', '로그인에 실패했습니다.')
@@ -179,16 +178,19 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             idx += 1
 
         self.restoreCursor()
-        self.btn_start.setEnabled(True)
 
     def delete(self):
-        if not self.g_list:
-            return QtWidgets.QMessageBox.warning(self, '안내', '글 또는 댓글 목록을 불러온 후 삭제해 주세요.')
-        elif self.checkbox_gall_all.isChecked():
-            self.cleaner_thread.setDelInfo(self.g_list, self.p_type)
-        else:
+        del_all = self.checkbox_gall_all.isChecked()
+        del_list = []
+
+        if not self.p_type:
+            return QtWidgets.QMessageBox.warning(self, '안내', '글 또는 댓글 불러오기를 하십시오.\n만약 목록이 비어있다면 전체삭제만 가능합니다.')
+        
+        if not del_all:
             idx = self.combo_box_gall.currentIndex()
-            self.cleaner_thread.setDelInfo([self.g_list[idx]], self.p_type)
+            del_list = [self.g_list[idx]]
+
+        self.cleaner_thread.setDelInfo(del_list, self.p_type, del_all)
         
         if self.checkbox_proxy.isChecked():
             self.cleaner.setProxyList(self.proxy_list)

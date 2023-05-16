@@ -5,7 +5,7 @@ from typing import Union
 import requests
 import time
 
-MAX_DELAY = 0.8
+MAX_DELAY = 0.9
 
 class Cleaner:
     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36'
@@ -146,8 +146,8 @@ class Cleaner:
         return data
 
     @_handleProxyError
-    def getPages(self, gno: str, post_type: str) -> int:
-        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index?cno={gno}&p=%s'
+    def getPageCount(self, gno: str, post_type: str) -> int:
+        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index?{ "cno=" + str(gno) + "&" if gno else "" }p=%s'
         self.session.headers.update({'User-Agent': self.user_agent})
 
         res = self.session.get(gallog_url % 1, proxies=self.getProxy())
@@ -170,9 +170,7 @@ class Cleaner:
 
     @_handleProxyError
     def getPostList(self, gno: str, post_type: str, idx: int) -> Union[list, str]:
-        print(gno, post_type, idx)
-
-        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index?cno={gno}&p=%s'
+        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index{ "cno=" + str(gno) + "&" if gno else "" }&p=%s'
         self.session.headers.update({'User-Agent': self.user_agent})
 
         res = self.session.get(gallog_url % idx, proxies=self.getProxy())
@@ -192,8 +190,8 @@ class Cleaner:
 
         return l
 
-    def getAllPosts(self, gno: str, post_type: str) -> None:
-        pages = self.getPages(gno, post_type)
+    def aggregatePosts(self, gno: str, post_type: str) -> None:
+        pages = self.getPageCount(gno, post_type)
         self.post_list = []
 
         for idx in range(pages, 0, -1):
