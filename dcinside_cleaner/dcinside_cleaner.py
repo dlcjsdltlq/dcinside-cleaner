@@ -170,7 +170,7 @@ class Cleaner:
 
     @_handleProxyError
     def getPostList(self, gno: str, post_type: str, idx: int) -> Union[list, str]:
-        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index{ "cno=" + str(gno) + "&" if gno else "" }&p=%s'
+        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index?{ "cno=" + str(gno) + "&" if gno else "" }p=%s'
         self.session.headers.update({'User-Agent': self.user_agent})
 
         res = self.session.get(gallog_url % idx, proxies=self.getProxy())
