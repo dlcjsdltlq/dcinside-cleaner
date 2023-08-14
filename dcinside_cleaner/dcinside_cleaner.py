@@ -85,7 +85,7 @@ class Cleaner:
         return True
 
     def login(self, user_id: str, user_pw: str) -> bool:
-        self.user_id = user_id
+        self.user_id = user_id.lower()
         self.session.headers.update(self.login_headers)
         res = self.session.get('https://www.dcinside.com/')
         soup = BeautifulSoup(res.text, 'html.parser')
