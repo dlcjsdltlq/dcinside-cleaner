@@ -2,3 +2,4 @@ tqdm
 requests
 bs4
 pyqt5
+2captcha-python

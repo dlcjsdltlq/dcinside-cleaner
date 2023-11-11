@@ -2,4 +2,4 @@ __pycache__/
 dcinside-cleaner-login.json
 build/
 dist/
-.venv
+.venv/

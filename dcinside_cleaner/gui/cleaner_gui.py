@@ -27,6 +27,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.id = ''
         self.pw = ''
         self.p_type = '' # 'posting' | 'comment'
+        self.twocaptcha_key = ''
         self.g_list = []
         self.proxy_list = []
         
@@ -43,6 +44,8 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
 
         self.input_pw.returnPressed.connect(self.login)
         self.btn_login.clicked.connect(self.login)
+
+        self.btn_captcha_key.clicked.connect(self.set2CaptchaKey)
 
         self.btn_get_posting.clicked.connect(lambda: self.getGallList('p'))
         self.btn_get_comment.clicked.connect(lambda: self.getGallList('c'))
@@ -93,9 +96,11 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.progress_cur += 1
             self.progress_bar.setValue(int((self.progress_cur / self.progress_max) * 100))
 
+            if 'captcha_solved' in event['data'].keys() and event['data']['captcha_solved']:
+                self.log(f"캡차가 자동 해제됨")
+
             if event['type'] == 'page_update':
                 self.log(f"{event['data']['index'] + 1}번째 페이지 로딩...")
-
             else:
                 self.log(f"{event['data']['del_no']}번 글 삭제")
                 
@@ -107,7 +112,8 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
 
         elif event['type'] == 'captcha':
             self.log('캡차 감지')
-            QtWidgets.QMessageBox.information(self, '캡차 안내', '캡차가 감지되었습니다.\n갤로그에 접속해 캡차를 해제한 후 확인을 눌러주세요.')
+            if not self.twocaptcha_key:
+                QtWidgets.QMessageBox.information(self, '캡차 안내', '캡차가 감지되었습니다.\n갤로그에 접속해 캡차를 해제한 후 확인을 눌러주세요.')
             self.captcha_signal.emit(True)
 
         elif event['type'] == 'complete':
@@ -216,6 +222,18 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.proxy_list = available_list
         self.checkbox_proxy.setText('프록시 사용 - 확인된 리스트')
         self.checkbox_proxy.setEnabled(True)
+
+    def set2CaptchaKey(self):
+        key = self.input_captcha_key.text()
+
+        res = self.cleaner.set2CaptchaKey(key)
+
+        if not res:
+            return QtWidgets.QMessageBox.warning(self, '안내', '유효하지 않은 API 키입니다.')
+        
+        self.group_box_captcha.setEnabled(False)
+
+        QtWidgets.QMessageBox.information(self, '안내', 'API 키가 등록되었습니다.')
 
 class AboutDialog(QtWidgets.QDialog, about_dialog_form):
 
