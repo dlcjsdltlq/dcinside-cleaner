@@ -38,15 +38,16 @@ class CleanerThread(QtCore.QThread):
                 pass
 
     def delete(self, gno):
-        self.event_signal.emit(
-            {'type': 'pages', 'data': self.cleaner.getPageCount(gno, self.p_type)})
+        self.event_signal.emit({'type': 'pages', 'data': self.cleaner.getPageCount(gno, self.p_type)})
+        
         for i in self.cleaner.aggregatePosts(gno, self.p_type):
             if i['data'] == 'ipblocked':
                 return self.event_signal.emit({'type': 'ipblocked'})
             self.event_signal.emit({'type': 'page_update', 'data': i['data']})
 
-        self.event_signal.emit(
-            {'type': 'posts', 'data': len(self.cleaner.post_list)})
+        self.event_signal.emit({'type': 'posts', 'data': len(self.cleaner.post_list)})
+        
+
         for i in self.cleaner.deletePosts(self.p_type):
             if i['data'] == 'ipblocked':
                 return self.event_signal.emit({'type': 'ipblocked'})

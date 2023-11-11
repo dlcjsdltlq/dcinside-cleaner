@@ -1,11 +1,15 @@
 from requests.exceptions import ConnectTimeout
 from requests.exceptions import ProxyError
+from twocaptcha import TwoCaptcha
 from bs4 import BeautifulSoup
 from typing import Union
 import requests
+import urllib3
 import time
 
 MAX_DELAY = 0.9
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 class Cleaner:
     user_agent = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/87.0.4280.66 Safari/537.36'
@@ -33,12 +37,16 @@ class Cleaner:
         'User-Agent': user_agent
     }
 
+    dcinside_site_key = '6LcJyr4UAAAAAOy9Q_e9sDWPSHJ_aXus4UnYLfgL'
+
     def __init__(self):
         self.session = requests.Session()
         self.session.verify = False
         self.session.headers.update({'User-Agent': self.user_agent})
         self.post_list = []
         self.proxy_list = []
+        self.twocaptcha_key = ''
+        self.solver : TwoCaptcha
         self.delay = MAX_DELAY
 
     def updateDelay(self):
@@ -73,6 +81,20 @@ class Cleaner:
     def setProxyList(self, proxy_list: list) -> None:
         self.proxy_list = proxy_list
         self.updateDelay()
+
+    def set2CaptchaKey(self, key) -> bool:
+        twocaptcha_url = f'https://2captcha.com/in.php?key={key}'
+
+        res = requests.get(twocaptcha_url)
+
+        if res.text in ('ERROR_KEY_DOES_NOT_EXIST', 'ERROR_WRONG_USER_KEY'):
+            return False
+        
+        self.twocaptcha_key = key
+
+        self.solver = TwoCaptcha(key)
+        
+        return True
 
     def getCookies(self) -> dict:
         return self.session.cookies.get_dict()
@@ -117,7 +139,7 @@ class Cleaner:
         }
 
     @_handleProxyError
-    def deletePost(self, post_no: str, post_type: str) -> Union[dict, bool]:
+    def deletePost(self, post_no: str, post_type: str, solve_captcha: bool) -> Union[dict, bool]:
         gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}'
 
         proxy = self.getProxy()
@@ -127,11 +149,14 @@ class Cleaner:
 
         if not BeautifulSoup(res.text, 'html.parser').select_one('body'):
             return False
+        
+        captcha = { 'g-recaptcha-response': self.solveCaptcha(gallog_url) if solve_captcha else 'undefined' }
 
         form_data = {
             'ci_t': self.session.cookies.get_dict()['ci_c'],
             'no': post_no,
             'service_code': 'undefined',
+            **(captcha if solve_captcha else {})
         }
 
         self.delete_headers['Referer'] = self.user_id
@@ -144,6 +169,48 @@ class Cleaner:
         if res.status_code == 200 and data['result'] == 'success':
             return {}
         return data
+
+    def deletePosts(self, post_type: str) -> Union[str, list]:
+        solve_captcha = False
+
+        while self.post_list:
+            post_no = self.post_list[0]
+
+            a = time.time()
+            time.sleep(self.delay)
+            data = self.deletePost(post_no, post_type, solve_captcha)
+            delay = time.time() - a
+
+            if data == 'BLOCKED':
+                yield {
+                    'status': False,
+                    'data': 'ipblocked'
+                }
+
+            if data and ('captcha' in data['result'] or ('fail' in data['result'] and 'g-recaptcha error!' in data['msg'])):
+                if self.twocaptcha_key: 
+                    solve_captcha = True
+                    continue
+
+                yield {
+                    'status': False,
+                    'data': 'captcha'
+                }
+
+            captcha_solved = solve_captcha
+
+            solve_captcha = False
+            self.post_list.pop(0)
+
+            yield {
+                'status': True,
+                'data': {
+                    'proxy': self.proxy_list and self.proxy_list[-1] or '',
+                    'del_no': post_no,
+                    'delay': round(delay, 1),
+                    'captcha_solved': captcha_solved
+                }
+            }
 
     @_handleProxyError
     def getPageCount(self, gno: str, post_type: str) -> int:
@@ -170,7 +237,7 @@ class Cleaner:
 
     @_handleProxyError
     def getPostList(self, gno: str, post_type: str, idx: int) -> Union[list, str]:
-        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index{ "cno=" + str(gno) + "&" if gno else "" }&p=%s'
+        gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}/index?{ "cno=" + str(gno) + "&" if gno else "" }&p=%s'
         self.session.headers.update({'User-Agent': self.user_agent})
 
         res = self.session.get(gallog_url % idx, proxies=self.getProxy())
@@ -207,39 +274,12 @@ class Cleaner:
                 }
 
             self.post_list += res
+
             yield {
                 'status': True,
                 'data': {
                     'index': idx,
                     'proxy': self.proxy_list and self.proxy_list[-1] or '',
-                    'delay': round(delay, 1)
-                }
-            }
-
-    def deletePosts(self, post_type: str) -> Union[str, list]:
-        for post_no in self.post_list:
-            a = time.time()
-            time.sleep(self.delay)
-            res = self.deletePost(post_no, post_type)
-            delay = time.time() - a
-
-            if res == 'BLOCKED':
-                yield {
-                    'status': False,
-                    'data': 'ipblocked'
-                }
-
-            if res and 'captcha' in res['result']:
-                yield {
-                    'status': False,
-                    'data': 'captcha'
-                }
-
-            yield {
-                'status': True,
-                'data': {
-                    'proxy': self.proxy_list and self.proxy_list[-1] or '',
-                    'del_no': post_no,
                     'delay': round(delay, 1)
                 }
             }
@@ -278,3 +318,8 @@ class Cleaner:
             }
 
         return {}
+    
+    def solveCaptcha(self, page_url) -> str:
+        result = self.solver.recaptcha(sitekey=self.dcinside_site_key, url=page_url)
+
+        return result['code']

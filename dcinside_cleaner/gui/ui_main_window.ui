@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>464</width>
-    <height>920</height>
+    <width>327</width>
+    <height>503</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -77,72 +77,6 @@
      </widget>
     </item>
     <item>
-     <widget class="QGroupBox" name="group_box_login_info">
-      <property name="title">
-       <string>로그인 정보</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_7">
-       <item>
-        <widget class="QLabel" name="label_nickname">
-         <property name="text">
-          <string>닉네임: Unknown</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_article_num">
-         <property name="text">
-          <string>글 개수: 0</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLabel" name="label_comment_num">
-         <property name="text">
-          <string>댓글 개수: 0</string>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QGroupBox" name="group_box_captcha">
-      <property name="title">
-       <string>캡차 자동 해제</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_8">
-       <item>
-        <layout class="QHBoxLayout" name="horizontalLayout_3">
-         <property name="topMargin">
-          <number>0</number>
-         </property>
-         <item>
-          <widget class="QLabel" name="label">
-           <property name="text">
-            <string>2Captcha API Key</string>
-           </property>
-           <property name="alignment">
-            <set>Qt::AlignCenter</set>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="input_captcha_key"/>
-         </item>
-         <item>
-          <widget class="QPushButton" name="btn_captcha_key">
-           <property name="text">
-            <string>확인</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
      <widget class="QGroupBox" name="group_box_gall">
       <property name="title">
        <string>갤러리 선택</string>
@@ -179,13 +113,6 @@
          </item>
         </layout>
        </item>
-       <item>
-        <widget class="QLabel" name="label_current_mode">
-         <property name="text">
-          <string>현재 모드: Unknown</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
@@ -218,13 +145,6 @@
      </widget>
     </item>
     <item>
-     <widget class="QCheckBox" name="checkbox_proxy">
-      <property name="text">
-       <string>프록시 사용</string>
-      </property>
-     </widget>
-    </item>
-    <item>
      <widget class="QPushButton" name="btn_start">
       <property name="text">
        <string>시작</string>
@@ -234,41 +154,6 @@
    </layout>
   </widget>
   <widget class="QStatusBar" name="status_bar"/>
-  <widget class="QMenuBar" name="menuBar">
-   <property name="geometry">
-    <rect>
-     <x>0</x>
-     <y>0</y>
-     <width>464</width>
-     <height>26</height>
-    </rect>
-   </property>
-   <widget class="QMenu" name="menu">
-    <property name="title">
-     <string>메뉴</string>
-    </property>
-    <addaction name="action_add_proxy"/>
-    <addaction name="action_get_proxy"/>
-    <addaction name="separator"/>
-    <addaction name="action_about"/>
-   </widget>
-   <addaction name="menu"/>
-  </widget>
-  <action name="action_add_proxy">
-   <property name="text">
-    <string>프록시 추가</string>
-   </property>
-  </action>
-  <action name="action_get_proxy">
-   <property name="text">
-    <string>프록시 불러오기</string>
-   </property>
-  </action>
-  <action name="action_about">
-   <property name="text">
-    <string>정보</string>
-   </property>
-  </action>
  </widget>
  <resources/>
  <connections/>
