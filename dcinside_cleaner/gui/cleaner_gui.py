@@ -38,7 +38,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.progress_cur = 0
         self.progress_max = 0
         self.current_delay = 0
-        self.delay_buffer = deque(maxlen=10)
+        self.delay_buffer = deque(maxlen=30)
         self.current_task_type = None
 
         self.cleaner_thread = CleanerThread(self.captcha_signal)
