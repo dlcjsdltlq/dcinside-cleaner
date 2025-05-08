@@ -38,7 +38,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         self.progress_cur = 0
         self.progress_max = 0
         self.current_delay = 0
-        self.delay_buffer = deque(maxlen=30)
+        self.recent_delays = deque(maxlen=30)
         self.current_task_type = None
 
         self.cleaner_thread = CleanerThread(self.captcha_signal)
@@ -130,7 +130,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.progress_bar.setValue(int((self.progress_cur / self.progress_max) * 100))
 
             if self.current_task_type != event['type']:
-                self.delay_buffer.clear()
+                self.recent_delays.clear()
                 self.current_task_type = event['type']
 
             if 'captcha_solved' in event['data'].keys() and event['data']['captcha_solved']:
@@ -142,9 +142,17 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
                 self.log(f"{event['data']['del_no']}번 글 삭제")
             
             current_event_delay = event['data']['delay']
-            self.delay_buffer.append(current_event_delay)
+            self.recent_delays.append(current_event_delay)
+            
+            # 버퍼 최소/최대값 제외
+            if len(self.recent_delays) >= 4: 
+                sorted_buffer = sorted(list(self.recent_delays))
+                trimmed_buffer = sorted_buffer[1:-1]
+                average_delay = sum(trimmed_buffer) / len(trimmed_buffer)
+            else:
+                # 버퍼에 아이템이 3개 이하이면 전체 평균 사용
+                average_delay = sum(self.recent_delays) / len(self.recent_delays)
 
-            average_delay = sum(self.delay_buffer) / len(self.delay_buffer)
             estimated_time_str = self.calculateEstimatedTime(average_delay)
                 
             self.log(f"프록시: {event['data']['proxy'] or 'X'}, 딜레이: {current_event_delay:.1f}sec, ETA: {estimated_time_str}")
