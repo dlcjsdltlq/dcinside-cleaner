@@ -7,7 +7,7 @@ import re
 class Console:
     p_type_dict = {'-p': 'posting', '-c': 'comment'}
     def __init__(self):
-        self.cleaner = Cleaner(self)
+        self.cleaner = Cleaner()
         self.login_flag = False
         self.g_list = {'type':  None}
         self.getCommand()
