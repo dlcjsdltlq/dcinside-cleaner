@@ -174,10 +174,10 @@ class Cleaner:
                 if attempt < MAX_ATTEMPT - 1:
                     time.sleep(10)
                 else:
-                    return 'BLOCKED'
+                    return 'FAILED'
 
         if data is None:
-            return 'BLOCKED'
+            return 'FAILED'
 
         if res.status_code == 200 and data['result'] == 'success':
             return {}
@@ -198,6 +198,12 @@ class Cleaner:
                 yield {
                     'status': False,
                     'data': 'ipblocked'
+                }
+
+            if data == 'FAILED':
+                yield {
+                    'status': False,
+                    'data': 'failed'
                 }
 
             if data and ('captcha' in data['result'] or ('fail' in data['result'] and 'g-recaptcha error!' in data['msg'])):
