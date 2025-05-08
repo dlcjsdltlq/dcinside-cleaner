@@ -141,49 +141,46 @@ class Cleaner:
     @_handleProxyError
     def deletePost(self, post_no: str, post_type: str, solve_captcha: bool) -> Union[dict, bool]:
         gallog_url = f'https://gallog.dcinside.com/{self.user_id}/{post_type}'
+
         proxy = self.getProxy()
+
         self.session.headers.update({'User-Agent': self.user_agent})
+        res = self.session.get(gallog_url, proxies=proxy)
 
-        max_retry = 5
-        for retry in range(max_retry):
+        if not BeautifulSoup(res.text, 'html.parser').select_one('body'):
+            return False
+        
+        captcha = { 'g-recaptcha-response': self.solveCaptcha(gallog_url) if solve_captcha else 'undefined' }
+
+        form_data = {
+            'ci_t': self.session.cookies.get_dict()['ci_c'],
+            'no': post_no,
+            'service_code': 'undefined',
+            **(captcha if solve_captcha else {})
+        }
+
+        self.delete_headers['Referer'] = self.user_id
+        self.session.headers.update(self.delete_headers)
+        res = self.session.post(
+            f'https://gallog.dcinside.com/{self.user_id}/ajax/log_list_ajax/delete', data=form_data, proxies=proxy)
+
+        data = None
+        for attempt in range(5):
             try:
-                res = self.session.get(gallog_url, proxies=proxy)
-                if not BeautifulSoup(res.text, 'html.parser').select_one('body'):
-                    return False
-
-                captcha = { 'g-recaptcha-response': self.solveCaptcha(gallog_url) if solve_captcha else 'undefined' }
-                form_data = {
-                    'ci_t': self.session.cookies.get_dict().get('ci_c', ''),
-                    'no': post_no,
-                    'service_code': 'undefined',
-                    **(captcha if solve_captcha else {})
-                }
-
-                self.delete_headers['Referer'] = self.user_id
-                self.session.headers.update(self.delete_headers)
-                res = self.session.post(
-                    f'https://gallog.dcinside.com/{self.user_id}/ajax/log_list_ajax/delete', data=form_data, proxies=proxy)
-
-                try:
-                    data = res.json()
-                except Exception:
-                    # 서버가 비정상 응답 시 10초 대기 후 재시도
-                    if retry < max_retry - 1:
-                        time.sleep(10)
-                        continue
-                    else:
-                        return {'result': 'fail', 'msg': 'JSON decode error or empty response'}
-
-                if res.status_code == 200 and data.get('result') == 'success':
-                    return {}
-                return data
-            except Exception as e:
-                # 네트워크 등 기타 예외 발생 시 10초 대기 후 재시도
-                if retry < max_retry - 1:
+                data = res.json()
+                break 
+            except requests.exceptions.JSONDecodeError as e:
+                if attempt < 4:
                     time.sleep(10)
-                    continue
                 else:
-                    return {'result': 'fail', 'msg': str(e)}
+                    return 'BLOCKED'
+
+        if data is None:
+            return 'BLOCKED'
+
+        if res.status_code == 200 and data['result'] == 'success':
+            return {}
+        return data
 
     def deletePosts(self, post_type: str) -> Union[str, list]:
         solve_captcha = False

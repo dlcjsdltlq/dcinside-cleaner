@@ -103,7 +103,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             time_parts.append(f"{hours}시간")
         if minutes > 0:
             time_parts.append(f"{minutes}분")
-        if seconds > 0 or not time_parts: # 초 단위는 항상 표시하거나, 다른 단위가 없을 때 표시
+        if seconds > 0 or not time_parts:
             time_parts.append(f"{seconds}초")
         
         return " ".join(time_parts) if time_parts else "0초"
@@ -144,13 +144,11 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             current_event_delay = event['data']['delay']
             self.recent_delays.append(current_event_delay)
             
-            # 버퍼 최소/최대값 제외
             if len(self.recent_delays) >= 4: 
                 sorted_buffer = sorted(list(self.recent_delays))
                 trimmed_buffer = sorted_buffer[1:-1]
                 average_delay = sum(trimmed_buffer) / len(trimmed_buffer)
             else:
-                # 버퍼에 아이템이 3개 이하이면 전체 평균 사용
                 average_delay = sum(self.recent_delays) / len(self.recent_delays)
 
             estimated_time_str = self.calculateEstimatedTime(average_delay)
@@ -160,6 +158,10 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
         elif event['type'] == 'ipblocked':
             self.log('IP 차단 감지')
             QtWidgets.QMessageBox.warning(self, '차단 안내', 'IP가 차단되었습니다.')
+
+        elif event['type'] == 'fail':
+            self.log('삭제 실패')
+            QtWidgets.QMessageBox.warning(self, '실패 안내', '삭제에 실패했습니다.\n잠시 후 다시 시도해 보세요.')
 
         elif event['type'] == 'captcha':
             self.log('캡차 감지')
