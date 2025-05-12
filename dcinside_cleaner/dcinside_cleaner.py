@@ -8,6 +8,7 @@ import urllib3
 import time
 
 MAX_DELAY = 0.9
+MAX_ATTEMPT = 5
 
 urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
@@ -161,10 +162,22 @@ class Cleaner:
 
         self.delete_headers['Referer'] = self.user_id
         self.session.headers.update(self.delete_headers)
-        res = self.session.post(
-            f'https://gallog.dcinside.com/{self.user_id}/ajax/log_list_ajax/delete', data=form_data, proxies=proxy)
 
-        data = res.json()
+        data = None
+        for attempt in range(MAX_ATTEMPT):
+            try:
+                res = self.session.post(
+                    f'https://gallog.dcinside.com/{self.user_id}/ajax/log_list_ajax/delete', data=form_data, proxies=proxy)
+                data = res.json()
+                break 
+            except requests.exceptions.JSONDecodeError as e:
+                if attempt < MAX_ATTEMPT - 1:
+                    time.sleep(10)
+                else:
+                    return 'FAILED'
+
+        if data is None:
+            return 'FAILED'
 
         if res.status_code == 200 and data['result'] == 'success':
             return {}
@@ -185,6 +198,12 @@ class Cleaner:
                 yield {
                     'status': False,
                     'data': 'ipblocked'
+                }
+
+            if data == 'FAILED':
+                yield {
+                    'status': False,
+                    'data': 'failed'
                 }
 
             if data and ('captcha' in data['result'] or ('fail' in data['result'] and 'g-recaptcha error!' in data['msg'])):

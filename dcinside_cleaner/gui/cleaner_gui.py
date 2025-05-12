@@ -10,6 +10,8 @@ from PyQt5 import uic
 import json
 import sys
 import os
+import math
+from collections import deque
 
 main_form = uic.loadUiType(resource_path('./resources/ui/ui_main_window.ui'))[0]
 about_dialog_form = uic.loadUiType(resource_path('./resources/ui/ui_about_dialog.ui'))[0]
@@ -35,6 +37,9 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
 
         self.progress_cur = 0
         self.progress_max = 0
+        self.current_delay = 0
+        self.recent_delays = deque(maxlen=30)
+        self.current_task_type = None
 
         self.cleaner_thread = CleanerThread(self.captcha_signal)
         self.cleaner = Cleaner()
@@ -77,6 +82,32 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.proxy_list = []
             QtWidgets.QMessageBox.warning(self, '파일 열기 실패', '올바른 파일이 아닙니다.')
 
+    def calculateEstimatedTime(self, average_delay):
+        if self.progress_max <= 0 or self.progress_cur >= self.progress_max:
+            return "0초"
+        
+        remaining_items = self.progress_max - self.progress_cur
+        total_seconds = math.ceil(remaining_items * average_delay)
+
+        days = total_seconds // (24 * 3600)
+        total_seconds = total_seconds % (24 * 3600)
+        hours = total_seconds // 3600
+        total_seconds %= 3600
+        minutes = total_seconds // 60
+        seconds = total_seconds % 60
+
+        time_parts = []
+        if days > 0:
+            time_parts.append(f"{days}일")
+        if hours > 0:
+            time_parts.append(f"{hours}시간")
+        if minutes > 0:
+            time_parts.append(f"{minutes}분")
+        if seconds > 0 or not time_parts:
+            time_parts.append(f"{seconds}초")
+        
+        return " ".join(time_parts) if time_parts else "0초"
+
     @QtCore.pyqtSlot(dict)
     def deleteEvent(self, event):
         if event['type'] == 'pages':
@@ -84,6 +115,7 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.progress_cur = 0
             self.progress_max = event['data']
             self.progress_bar.setValue(0)
+            self.current_task_type = None
 
         elif event['type'] == 'posts':
             self.log(f'글 개수는 {event["data"]}개 입니다')
@@ -91,10 +123,15 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
             self.progress_cur = 0
             self.progress_max = event['data']
             self.progress_bar.setValue(0)
+            self.current_task_type = None
 
         elif event['type'] in ('page_update', 'post_update'):
             self.progress_cur += 1
             self.progress_bar.setValue(int((self.progress_cur / self.progress_max) * 100))
+
+            if self.current_task_type != event['type']:
+                self.recent_delays.clear()
+                self.current_task_type = event['type']
 
             if 'captcha_solved' in event['data'].keys() and event['data']['captcha_solved']:
                 self.log(f"캡차가 자동 해제됨")
@@ -103,12 +140,28 @@ class MainWindow(QtWidgets.QMainWindow, main_form):
                 self.log(f"{event['data']['index'] + 1}번째 페이지 로딩...")
             else:
                 self.log(f"{event['data']['del_no']}번 글 삭제")
+            
+            current_event_delay = event['data']['delay']
+            self.recent_delays.append(current_event_delay)
+            
+            if len(self.recent_delays) >= 4: 
+                sorted_buffer = sorted(list(self.recent_delays))
+                trimmed_buffer = sorted_buffer[1:-1]
+                average_delay = sum(trimmed_buffer) / len(trimmed_buffer)
+            else:
+                average_delay = sum(self.recent_delays) / len(self.recent_delays)
+
+            estimated_time_str = self.calculateEstimatedTime(average_delay)
                 
-            self.log(f"프록시는 {event['data']['proxy'] or 'X'}, 딜레이는 {event['data']['delay']}sec")
+            self.log(f"프록시: {event['data']['proxy'] or 'X'}, 딜레이: {current_event_delay:.1f}sec, ETA: {estimated_time_str}")
 
         elif event['type'] == 'ipblocked':
             self.log('IP 차단 감지')
             QtWidgets.QMessageBox.warning(self, '차단 안내', 'IP가 차단되었습니다.')
+
+        elif event['type'] == 'fail':
+            self.log('삭제 실패')
+            QtWidgets.QMessageBox.warning(self, '실패 안내', '삭제에 실패했습니다.\n잠시 후 다시 시도해 보세요.')
 
         elif event['type'] == 'captcha':
             self.log('캡차 감지')
